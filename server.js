@@ -11,7 +11,7 @@ const wss = new WebSocket.Server({
 });
 setInterval(() => {
     console.log(`Online clients: ${wss.clients.size}`);
-    console.log(JSON.stringify(Lobbies))
+    console.log(Lobbies)
 }, 1000 * 10)
 
 setInterval(AutomaticClean, 1000 * 10);
@@ -93,7 +93,7 @@ function addToLobby(user, mapName) {
             user.lobbyID = Lobbies[i].UUID;
             user.send(JSON.stringify({
                 type: "UpdateLobbyID",
-                id: user.LobbyID
+                id: Lobbies[i].UUID
             }));
             return Lobbies[i];
         }
