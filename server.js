@@ -12,8 +12,8 @@ const wss = new WebSocket.Server({
 });
 setInterval(() => {
     console.log(`Online clients: ${wss.clients.size}`);
-    console.log(Lobbies)
-}, 1000)
+    console.log(JSON.stringify(Lobbies))
+}, 1000 * 10)
 
 setInterval(AutomaticClean, 1000 * 10);
 
