@@ -29,6 +29,10 @@ wss.on('connection', (ws, req) => {
         data.ID = ws.clientID;
         if (data.type == "travelMap") {
             ws.LobbyID = addToLobby(ws, data.map).UUID;
+            ws.send(JSON.stringify({
+                type: "UpdateLobbyID",
+                id: ws.LobbyID
+            }));
         } else {
             const lobby = getLobby(ws.LobbyID);
             if (lobby == undefined) {
@@ -74,7 +78,7 @@ function getLobby(UUID) {
 function removeFromLobby(user) {
     for (let i = 0; i < Lobbies.length; i++) {
         if (Lobbies[i].UUID == user.LobbyID) {
-            Lobbies[i].users = Lobbies[i].users.filter(function (el) {
+            Lobbies[i].clients = Lobbies[i].clients.filter(function (el) {
                 return el.clientID != user.clientID;
             });
             return;
