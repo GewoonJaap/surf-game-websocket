@@ -6,9 +6,14 @@ const wss = new WebSocket.Server({
 });
 
 wss.on('connection', (ws) => {
+    console.log(`New connection ${ws.listenerCount()}`)
     ws.on('message', (data) => {
-        console.log(`Data recieved ${data}`);
-        ws.send(data);
+     //  console.log(`Data recieved ${data}`);
+        wss.clients.forEach(function each(client) {
+            if (client == ws && client.readyState === WebSocket.OPEN) {
+              client.send(data);
+            }
+          });
     });
 });
 
