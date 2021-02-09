@@ -29,14 +29,11 @@ wss.on('connection', (ws, req) => {
         data.ID = ws.clientID;
         if (data.type == "travelMap") {
             ws.LobbyID = addToLobby(ws, data.map).UUID;
-            ws.send(JSON.stringify({
-                type: "UpdateLobbyID",
-                id: ws.LobbyID
-            }));
         } else {
             const lobby = getLobby(ws.LobbyID);
             if (lobby == undefined) {
                 console.log(`No lobby found for: ${ws.LobbyID}`);
+                ws.LobbyID = addToLobby(ws, data.map).UUID;
                 return;
             }
             // console.log(`Data recieved ${data}`);
@@ -91,6 +88,10 @@ function addToLobby(user, mapName) {
         if (Lobbies[i].mapName.toLowerCase() == mapName.toLowerCase()) {
             Lobbies[i].clients.push(user);
             console.log(`${user.clientID} added to lobby: ${Lobbies[i].UUID}`);
+            user.send(JSON.stringify({
+                type: "UpdateLobbyID",
+                id: ws.LobbyID
+            }));
             return Lobbies[i];
         }
     }
