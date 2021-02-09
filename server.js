@@ -1,6 +1,5 @@
 const WebSocket = require('ws');
 const uuid = require('uuid');
-require('better-logging')(console);
 
 let Lobbies = [];
 
