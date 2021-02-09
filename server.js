@@ -90,6 +90,7 @@ function addToLobby(user, mapName) {
         if (Lobbies[i].mapName.toLowerCase() == mapName.toLowerCase()) {
             Lobbies[i].clients.push(user);
             console.log(`${user.clientID} added to lobby: ${Lobbies[i].UUID}`);
+            user.lobbyID = Lobbies[i].UUID;
             user.send(JSON.stringify({
                 type: "UpdateLobbyID",
                 id: user.LobbyID
