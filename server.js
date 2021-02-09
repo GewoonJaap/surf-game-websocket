@@ -11,11 +11,14 @@ const wss = new WebSocket.Server({
 });
 setInterval(() => {
     console.log(`Online clients: ${wss.clients.size}`);
-   // console.log(Lobbies)
+    console.log(Lobbies)
 }, 1000)
+
+setInterval(AutomaticClean, 1000 * 10);
 
 wss.on('connection', (ws, req) => {
     ws.clientID = uuid.v4();
+    ws.LobbyID = uuid.NIL;
     console.log(`New connection: ${ws.clientID}, ${wss.clients.size}`);
     ws.send(JSON.stringify({
         type: "UpdateID",
@@ -24,16 +27,14 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (data) => {
         data = JSON.parse(data);
         data.ID = ws.clientID;
-        data.LobbyID = uuid.NIL;
-        if (data.type != "PlayerInfo") {
-            console.log(data)
-        }
         if (data.type == "travelMap") {
-            data.LobbyID = addToLobby(ws, data.map).UUID;
+            ws.LobbyID = addToLobby(ws, data.map).UUID;
         } else {
-            const lobby = getLobby(data.LobbyID);
-            if (lobby == undefined) return;
-
+            const lobby = getLobby(ws.LobbyID);
+            if (lobby == undefined) {
+                console.log(`No lobby found for: ${ws.LobbyID}`);
+                return;
+            }
             // console.log(`Data recieved ${data}`);
             lobby.clients.forEach(function each(client) {
                 if (client != ws && client.readyState === WebSocket.OPEN) {
@@ -43,9 +44,8 @@ wss.on('connection', (ws, req) => {
         }
     });
     ws.on('close', (data) => {
-        data = JSON.parse(data);
         console.log(`${ws.clientID} left the server`);
-        const lobby = getLobby(data.LobbyID);
+        const lobby = getLobby(ws.LobbyID);
         if (lobby == undefined) return;
         lobby.clients.forEach(function each(client) {
             if (client != ws && client.readyState === WebSocket.OPEN) {
@@ -104,4 +104,19 @@ function CreateNewLobby(mapName) {
     Lobbies.push(newLobby);
     console.log(`Lobby created: ${JSON.stringify(newLobby)}`)
     return newLobby;
+}
+
+function AutomaticClean() {
+    console.log(`Cleaning`)
+    for (let i = 0; i < Lobbies.length; i++) {
+        if (Lobbies[i].clients.length == 0) {
+            console.log(`Removing lobby: ${Lobbies[i].UUID}`)
+            Lobbies.splice(i, 1);
+            return AutomaticClean();
+        } else {
+            Lobbies[i].clients = Lobbies[i].clients.filter(function (client) {
+                return client.readyState === WebSocket.OPEN;
+            });
+        }
+    }
 }
