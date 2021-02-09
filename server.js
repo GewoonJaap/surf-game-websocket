@@ -92,7 +92,7 @@ function addToLobby(user, mapName) {
             console.log(`${user.clientID} added to lobby: ${Lobbies[i].UUID}`);
             user.send(JSON.stringify({
                 type: "UpdateLobbyID",
-                id: ws.LobbyID
+                id: user.LobbyID
             }));
             return Lobbies[i];
         }
