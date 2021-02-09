@@ -19,6 +19,7 @@ setInterval(AutomaticClean, 1000 * 10);
 wss.on('connection', (ws, req) => {
     ws.clientID = uuid.v4();
     ws.LobbyID = uuid.NIL;
+    ws.map = "none";
     console.log(`New connection: ${ws.clientID}, ${wss.clients.size}`);
     ws.send(JSON.stringify({
         type: "UpdateID",
@@ -28,12 +29,13 @@ wss.on('connection', (ws, req) => {
         data = JSON.parse(data);
         data.ID = ws.clientID;
         if (data.type == "travelMap") {
+            ws.map = data.map;
             ws.LobbyID = addToLobby(ws, data.map).UUID;
         } else {
             const lobby = getLobby(ws.LobbyID);
             if (lobby == undefined) {
                 console.log(`No lobby found for: ${ws.LobbyID}`);
-                ws.LobbyID = addToLobby(ws, data.map).UUID;
+                ws.LobbyID = addToLobby(ws, ws.map).UUID;
                 return;
             }
             // console.log(`Data recieved ${data}`);
