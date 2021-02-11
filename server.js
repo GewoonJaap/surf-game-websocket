@@ -99,6 +99,13 @@ function addToLobby(user, mapName) {
                 type: "UpdateLobbyID",
                 id: Lobbies[i].UUID
             }));
+            Lobbies[i].clients.forEach(function each(client) {
+                if (client != user && client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({
+                        type: "ForceSendData"
+                    }));
+                }
+            });
             return Lobbies[i];
         }
     }
