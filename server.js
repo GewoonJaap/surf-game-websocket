@@ -29,13 +29,17 @@ wss.on('connection', (ws, req) => {
         data = JSON.parse(data);
         data.ID = ws.clientID;
         if (data.type == "travelMap") {
+            console.log("Travelmap!", data)
             ws.map = data.map;
             ws.LobbyID = addToLobby(ws, data.map).UUID;
         } else {
             const lobby = getLobby(ws.LobbyID);
             if (lobby == undefined) {
-                console.log(`No lobby found for: ${ws.LobbyID}`);
-                ws.LobbyID = addToLobby(ws, ws.map).UUID;
+                //console.log(`No lobby found for: ${ws.LobbyID}`);
+                //ws.LobbyID = addToLobby(ws, ws.map).UUID;
+                ws.send(JSON.stringify({
+                    type: "requestMap"
+                }));
                 return;
             }
             // console.log(`Data recieved ${data}`);
