@@ -1,14 +1,23 @@
 const WebSocket = require('ws');
 const uuid = require('uuid');
+const fs = require('fs');
+const https = require('https');
+
+const server = https.createServer({
+    cert: fs.readFileSync('./cert/cert.pem'),
+    key: fs.readFileSync('./cert/key.pem')
+  });
 
 let Lobbies = [];
 
 
 const wss = new WebSocket.Server({
-    port: 8080
+    server 
 }, () => {
     console.log(`Server started`);
 });
+
+
 setInterval(() => {
     console.log(`Online clients: ${wss.clients.size}`);
     console.log(Lobbies)
@@ -139,3 +148,5 @@ function AutomaticClean() {
         }
     }
 }
+
+server.listen(8080);
