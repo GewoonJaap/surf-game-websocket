@@ -6,7 +6,8 @@ const https = require('https');
 
 const server = https.createServer({
     cert: fs.readFileSync(process.env.CERT),
-    key: fs.readFileSync(process.env.PRIVATEKEY)
+    key: fs.readFileSync(process.env.PRIVATEKEY),
+    ca: fs.readFileSync(process.env.CA)
   });
 
 let Lobbies = [];
