@@ -4,20 +4,25 @@ const uuid = require('uuid');
 const fs = require('fs');
 const https = require('https');
 
-const server = https.createServer({
-    cert: fs.readFileSync(process.env.CERT),
-    key: fs.readFileSync(process.env.PRIVATEKEY),
-    ca: fs.readFileSync(process.env.CA)
-  });
+// const server = https.createServer({
+//     cert: fs.readFileSync(process.env.CERT),
+//     key: fs.readFileSync(process.env.PRIVATEKEY),
+//     ca: fs.readFileSync(process.env.CA)
+//   });
 
 let Lobbies = [];
 
 
 const wss = new WebSocket.Server({
-    server 
+    port: 8080
+    //server
 }, () => {
     console.log(`Server started`);
 });
+
+
+
+//server.listen(8080);
 
 
 setInterval(() => {
@@ -150,5 +155,3 @@ function AutomaticClean() {
         }
     }
 }
-
-server.listen(8080);
