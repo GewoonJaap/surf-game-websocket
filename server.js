@@ -4,6 +4,8 @@ const uuid = require('uuid');
 const fs = require('fs');
 const https = require('https');
 
+const PORT = 8080;
+
 // const server = https.createServer({
 //     cert: fs.readFileSync(process.env.CERT),
 //     key: fs.readFileSync(process.env.PRIVATEKEY),
@@ -14,10 +16,10 @@ let Lobbies = [];
 
 
 const wss = new WebSocket.Server({
-    port: 8080
+    port: PORT
     //server
 }, () => {
-    console.log(`Server started`);
+    console.log(`Matchmaking Server started`);
 });
 
 
@@ -83,7 +85,7 @@ wss.on('connection', (ws, req) => {
 });
 
 wss.on('listening', () => {
-    console.log("Server online on port 8080")
+    console.log(`Server online on port ${PORT}`)
 });
 
 function getLobby(UUID) {
