@@ -38,12 +38,22 @@ wss.on('connection', (ws, req) => {
     ws.clientID = uuid.v4();
     ws.LobbyID = uuid.NIL;
     ws.map = "none";
+    ws.useBuffer = false;
     console.log(`New connection: ${ws.clientID}, ${wss.clients.size}`);
     ws.send(JSON.stringify({
         type: "UpdateID",
         id: ws.clientID
     }));
+
+    ws.send(Buffer.from(JSON.stringify({
+        type: "UpdateID",
+        id: ws.clientID
+    })));
+
     ws.on('message', (data) => {
+        ws.useBuffer = Buffer.isBuffer(data);
+        data = data.toString('utf8');
+
         data = JSON.parse(data);
         data.ID = ws.clientID;
         if (data.type == "travelMap") {
@@ -55,15 +65,23 @@ wss.on('connection', (ws, req) => {
             if (lobby == undefined) {
                 //console.log(`No lobby found for: ${ws.LobbyID}`);
                 //ws.LobbyID = addToLobby(ws, ws.map).UUID;
-                ws.send(JSON.stringify({
+                let message = JSON.stringify({
                     type: "requestMap"
-                }));
+                });
+                if (ws.useBuffer) {
+                    message = Buffer.from(message);
+                }
+                ws.send(message);
                 return;
             }
             // console.log(`Data recieved ${data}`);
             lobby.clients.forEach(function each(client) {
                 if (client != ws && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(data));
+                    let message = JSON.stringify(data);
+                    if (client.useBuffer) {
+                        message = Buffer.from(message);
+                    }
+                    client.send(message);
                 }
             });
         }
@@ -74,10 +92,15 @@ wss.on('connection', (ws, req) => {
         if (lobby == undefined) return;
         lobby.clients.forEach(function each(client) {
             if (client != ws && client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
+
+                let message = JSON.stringify({
                     type: "Disconnect",
                     id: ws.clientID
-                }));
+                });
+                if (client.useBuffer) {
+                    message = Buffer.from(message);
+                }
+                client.send(message);
                 removeFromLobby(ws);
             }
         });
@@ -113,15 +136,24 @@ function addToLobby(user, mapName) {
             Lobbies[i].clients.push(user);
             console.log(`${user.clientID} added to lobby: ${Lobbies[i].UUID}`);
             user.lobbyID = Lobbies[i].UUID;
-            user.send(JSON.stringify({
+            let message = JSON.stringify({
                 type: "UpdateLobbyID",
                 id: Lobbies[i].UUID
-            }));
+            });
+            if (user.useBuffer) {
+                message = Buffer.from(message);
+            }
+            user.send(message);
             Lobbies[i].clients.forEach(function each(client) {
                 if (client != user && client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({
+                    
+                    message = JSON.stringify({
                         type: "ForceSendData"
-                    }));
+                    });
+                    if (client.useBuffer) {
+                        message = Buffer.from(message);
+                    }
+                    client.send(message);
                 }
             });
             return Lobbies[i];
