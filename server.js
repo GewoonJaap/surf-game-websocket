@@ -14,6 +14,41 @@ const PORT = 8080;
 
 let Lobbies = [];
 
+let Leaderboard = {
+    'SkiGo': [{
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '00:30:10',
+            epoch: 30.31985
+        },
+        {
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '00:44:56',
+            epoch: 44.56985
+        },
+        {
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '01:10:11',
+            epoch: 70.11985
+        }
+    ],
+    'Neon': [{
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '01:30:12',
+            epoch: 90.12985
+        },
+        {
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '01:44:11',
+            epoch: 100.11985
+        },
+        {
+            name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+            time: '02:16:23',
+            epoch: 136.23985
+        }
+    ]
+};
+
 
 const wss = new WebSocket.Server({
     port: PORT
@@ -56,7 +91,20 @@ wss.on('connection', (ws, req) => {
 
         data = JSON.parse(data);
         data.ID = ws.clientID;
-        if (data.type == "travelMap") {
+
+        if (data.type == "addLeaderBoardEntry") {
+            const map = ws.map;
+            const time = data.time;
+            const rawTime = data.rawTime;
+            console.log(rawTime);
+            const entry = {
+                name: `Player#${Math.floor(1000 + Math.random() * 9000)}`,
+                time: time,
+                epoch: rawTime
+            };
+            Leaderboard[map].push(entry);
+            console.log(Leaderboard[map]);
+        } else if (data.type == "travelMap") {
             console.log("Travelmap!", data)
             ws.map = data.map;
             ws.LobbyID = addToLobby(ws, data.map).UUID;
@@ -130,6 +178,23 @@ function removeFromLobby(user) {
     }
 }
 
+function getFormattedLeaderboard(mapName) {
+    if (Leaderboard[mapName] == undefined) {
+        Leaderboard[mapName] = [];
+    }
+    const entries = Leaderboard[mapName];
+    const sorted = entries.sort((a, b) => a.epoch - b.epoch);
+    let amount = 3;
+    if (sorted.length < 3) {
+        amount = sorted.length;
+    }
+    let result = []
+    for (let i = 0; i < amount; i++) {
+        result.push(`${entries[i].name} - ${entries[i].time}`)
+    }
+    return result;
+}
+
 function addToLobby(user, mapName) {
     for (let i = 0; i < Lobbies.length; i++) {
         if (Lobbies[i].mapName.toLowerCase() == mapName.toLowerCase()) {
@@ -144,9 +209,20 @@ function addToLobby(user, mapName) {
                 message = Buffer.from(message);
             }
             user.send(message);
+
+            message = JSON.stringify({
+                type: "LeaderBoard",
+                leaderboard: getFormattedLeaderboard(mapName)
+            });
+            if (user.useBuffer) {
+                message = Buffer.from(message);
+            }
+            user.send(message);
+
+
             Lobbies[i].clients.forEach(function each(client) {
                 if (client != user && client.readyState === WebSocket.OPEN) {
-                    
+
                     message = JSON.stringify({
                         type: "ForceSendData"
                     });
