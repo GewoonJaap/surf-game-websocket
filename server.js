@@ -104,6 +104,28 @@ wss.on('connection', (ws, req) => {
             };
             Leaderboard[map].push(entry);
             console.log(Leaderboard[map]);
+
+            const lobby = getLobby(ws.LobbyID);
+            if (lobby == undefined) return;
+
+
+            lobby.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN) {
+                    message = JSON.stringify({
+                        type: "LeaderBoard",
+                        leaderboard: getFormattedLeaderboard(client.map)
+                    });
+                    if (client.useBuffer) {
+                        message = Buffer.from(message);
+                    }
+                    client.send(message);
+                }
+            });
+
+
+
+            lobby.clients
+
         } else if (data.type == "travelMap") {
             console.log("Travelmap!", data)
             ws.map = data.map;
